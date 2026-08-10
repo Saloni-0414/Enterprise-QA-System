@@ -1,55 +1,75 @@
 # 🏢 Enterprise Q&A System
 
-An enterprise document question-answering system built using **Retrieval-Augmented Generation (RAG)**.
+An end-to-end **Enterprise Question Answering System** built using **Retrieval-Augmented Generation (RAG)**.
 
-The system allows users to upload enterprise PDF documents, stores their embeddings in **PostgreSQL with pgvector**, retrieves the most relevant document chunks for a user query, and generates an answer using **Google Gemini** with source citations.
+The system allows users to upload enterprise PDF documents, process and index them using embeddings, store the embeddings in **PostgreSQL with pgvector**, retrieve the most relevant document chunks for a user question, and generate an answer using **Google Gemini** with document and page-level citations.
 
 ---
 
-## 🚀 Overview
+## 📌 Overview
 
-The Enterprise Q&A System is designed to answer questions from enterprise documents without requiring users to manually search through large PDF files.
+Searching through large enterprise policy documents manually can be time-consuming.
 
-The system follows a complete RAG pipeline:
+This project provides an AI-powered question-answering system where users can:
+
+- Upload enterprise PDF documents
+- Automatically process and index documents
+- Ask questions in natural language
+- Retrieve relevant document content using semantic search
+- Generate answers using an LLM
+- View the source document and page used for the answer
+- Continue asking questions in a chat-style interface
+
+The system is designed with a layered architecture separating the:
+
+- Frontend
+- API layer
+- Business services
+- RAG components
+- Database
+- LLM
+
+---
+
+# 🏗️ System Architecture
 
 ```text
-                  PDF Document
-                       │
-                       ▼
-                Document Loader
-                       │
-                       ▼
-                 SHA-256 Hash
-                       │
-                       ▼
-               Duplicate Check
-                       │
-                       ▼
-                Text Chunking
-                       │
-                       ▼
-                  Embeddings
-                       │
-                       ▼
-             PostgreSQL + pgvector
-                       │
-                       │
-                  User Query
-                       │
-                       ▼
-                Query Embedding
-                       │
-                       ▼
-             Similarity Search
-                       │
-                       ▼
-               Relevant Chunks
-                       │
-                       ▼
-                 Google Gemini
-                       │
-                       ▼
-                Generated Answer
-                       │
-                       ▼
-              Source Citations
+                         ┌─────────────────────────┐
+                         │       Streamlit         │
+                         │        Frontend         │
+                         └────────────┬────────────┘
+                                      │
+                                      │ HTTP
+                                      ▼
+                         ┌─────────────────────────┐
+                         │        FastAPI          │
+                         │        API Layer        │
+                         └────────────┬────────────┘
+                                      │
+                    ┌─────────────────┴─────────────────┐
+                    │                                   │
+                    ▼                                   ▼
+             Document Upload                       User Query
+                    │                                   │
+                    ▼                                   ▼
+             IndexingService                         QueryService
+                    │                                   │
+                    ▼                                   ▼
+             DocumentLoader                     Query Embedding
+                    │                                   │
+                    ▼                                   ▼
+             DocumentSplitter                   Similarity Search
+                    │                                   │
+                    ▼                                   ▼
+             EmbeddingModel                      Relevant Chunks
+                    │                                   │
+                    └─────────────────┬─────────────────┘
+                                      │
+                                      ▼
+                           PostgreSQL + pgvector
+                                      │
+                                      ▼
+                                Google Gemini
+                                      │
+                                      ▼
+                             Answer + Citations
